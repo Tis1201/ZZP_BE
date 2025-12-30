@@ -9,7 +9,12 @@ import { PresignUploadDto } from './dto/presign.dto';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { UserService } from 'src/user/user.service';
 
-const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'application/pdf'];
+const ALLOWED_FILE_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'application/pdf',
+  'image/webp',
+];
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 @Injectable()
@@ -18,13 +23,12 @@ export class S3Service {
   private readonly bucket: string;
   private readonly publicBaseUrl: string;
 
-  constructor(
-    private readonly userService: UserService,
-  ) {
+  constructor(private readonly userService: UserService) {
     this.bucket = process.env.AWS_S3_BUCKET || '';
-    this.publicBaseUrl = process.env.CDN_BASE_URL || process.env.AWS_S3_PUBLIC_BASE_URL || '';
+    this.publicBaseUrl =
+      process.env.CDN_BASE_URL || process.env.AWS_S3_PUBLIC_BASE_URL || '';
     this.s3Client = new S3Client({
-      region: process.env.AWS_REGION || 'us-east-1',
+      region: process.env.AWS_REGION || 'ap-southeast-2',
       credentials: {
         accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
@@ -85,6 +89,7 @@ export class S3Service {
       const contentType = head.ContentType ?? '';
       const size = head.ContentLength ?? 0;
 
+      console.log('contentType received:', contentType);
       if (!ALLOWED_FILE_TYPES.includes(contentType)) {
         throw new BadRequestException('Uploaded file type not allowed');
       }
@@ -99,7 +104,9 @@ export class S3Service {
         size,
       };
     } catch (e: any) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
       const status = e?.$metadata?.httpStatusCode;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       if (status === 404 || e?.name === 'NotFound') {
         throw new BadRequestException('File not found on S3');
       }

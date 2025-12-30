@@ -1,5 +1,5 @@
 // src/modules/user/user.service.ts
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/entity/user.entity';
 import { Repository } from 'typeorm';
@@ -19,8 +19,10 @@ export class UserService {
     return `${salt}:${hashedPassword}`;
   }
 
-  create(dto: CreateUserDto) {
+  async create(dto: CreateUserDto) {
     const hashed = this.hashPassword(dto.password);
+    const user = await this.findOne(dto.username);
+    if (user) throw new BadRequestException('Existing User');
     return this.userRepo.save({ ...dto, password: hashed });
   }
 

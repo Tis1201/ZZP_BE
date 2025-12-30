@@ -11,6 +11,6 @@ export class User {
   @Column()
   password: string;
 
-   @Column({ type: "varchar", length: 500, nullable: true })
+  @Column({ type: 'varchar', length: 500, nullable: true })
   avatarKey: string | null;
 }

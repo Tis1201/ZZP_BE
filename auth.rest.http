@@ -3,7 +3,7 @@ POST http://localhost:3000/auth/login
 Content-Type: application/json
 
 {
-    "username" : "vu.luu1@zzp.vn",
+    "username" : "vu.luu3@zzp.vn",
     "password" : "123456"
 }
 
@@ -12,22 +12,24 @@ POST http://localhost:3000/auth/sign-up
 Content-Type: application/json
 
 {
-    "username" : "vu.luu1@zzp.vn",
+    "username" : "vu.luu3@zzp.vn",
     "password" : "123456"
 }
+
+### GET USER BY ID
+GET http://localhost:3000/user/2
 
 ###GET ALL USER
 GET http://localhost:3000/user?page=1&limit=10
 
-### GET USER BY ID
-GET http://localhost:3000/user/2
+
 
 ### UPDATE USER
 PATCH  http://localhost:3000/user/update
 Content-Type: application/json
 
 {
-    "username" : "vu.luu2@zzp.vn"
+    "username" : "vu.luu4@zzp.vn"
 }
 
 ###DELETE USER BY ID
