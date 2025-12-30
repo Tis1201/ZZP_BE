@@ -1,17 +1,21 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 // src/modules/user/user.service.ts
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/entity/user.entity';
-import { Repository } from 'typeorm';
+import { LessThan, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { randomBytes, scryptSync } from 'crypto';
-import { Paginator } from 'src/utils/paginator.util';
+import { RedisService } from 'src/redis/redis.service';
+import { PaginatedUserResponseDto } from 'src/dto/cursor-response.dto';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
+    private readonly redisService: RedisService,
   ) {}
   hashPassword(password: string) {
     const salt = randomBytes(16).toString('hex');
@@ -26,6 +30,7 @@ export class UserService {
     return this.userRepo.save({ ...dto, password: hashed });
   }
 
+  /*
   async findAll(page: number, limit: number) {
     const paginator = new Paginator(page, limit);
     const totalUser = await this.userRepo.count();
@@ -39,9 +44,47 @@ export class UserService {
       metadata,
     };
   }
+    */
 
-  findById(id: number) {
-    return this.userRepo.findOne({ where: { id } });
+  async findAll(cursor: string | number | undefined, limit: number) {
+    const queryLimit = Number(limit) || 10;
+
+    const cursorNum = cursor ? Number(cursor) : undefined;
+
+    const items = await this.userRepo.find({
+      where: cursorNum ? { id: LessThan(cursorNum) } : {},
+      order: { id: 'ASC' } as any,
+      take: queryLimit + 1,
+    });
+
+    const hasNextPage = items.length > queryLimit;
+    const data = hasNextPage ? items.slice(0, queryLimit) : items;
+    const nextCursor =
+      hasNextPage && data.length > 0
+        ? data[data.length - 1].id.toString()
+        : null;
+
+    const result = {
+      data,
+      metadata: {
+        nextCursor,
+        hasNextPage,
+        limit: queryLimit,
+      },
+    };
+
+    return plainToInstance(PaginatedUserResponseDto, result, {
+      excludeExtraneousValues: true,
+    });
+  }
+
+  async findById(id: number) {
+    if (await this.redisService.get(id.toString())) {
+      return this.redisService.get(id.toString());
+    }
+    const user = await this.userRepo.findOne({ where: { id } });
+    await this.redisService.set(id.toString(), JSON.stringify(user), 300);
+    return user;
   }
 
   async findOne(name: string) {

@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserService } from './user.service';
+import { plainToInstance } from 'class-transformer';
 
 @Controller('user')
 export class UserController {
@@ -21,13 +22,17 @@ export class UserController {
   }
 
   @Get()
-  findAll(@Query('page') page: number = 1, @Query('limit') limit: number = 10) {
-    return this.userService.findAll(Number(page), Number(limit));
+  findAll(
+    @Query('cursor') cursor?: string,
+    @Query('limit') limit: number = 10,
+  ) {
+    return this.userService.findAll(cursor, limit);
   }
 
   @Get(':id')
   findOne(@Param('id') id: number) {
-    return this.userService.findById(id);
+    const user = this.userService.findById(id);
+    return plainToInstance(CreateUserDto, user);
   }
 
   @Patch('update')

@@ -1,37 +1,33 @@
-export interface PaginatedResult<T> {
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
+export interface CursorPaginatedResult<T> {
   data: T[];
   metadata: {
-    totalRecords: number;
-    firstPage: number;
-    lastPage: number;
-    page: number;
+    nextCursor: string | null;
+    hasNextPage: boolean;
     limit: number;
   };
 }
 
-export class Paginator {
-  public page: number;
+export class CursorPaginator {
+  public cursor: string | null;
   public limit: number;
-  public offset: number;
 
-  constructor(page?: number | string, limit?: number | string) {
-    this.limit = parseInt(limit as string, 10) || 5;
-    if (this.limit < 1) this.limit = 5;
+  constructor(cursor?: string, limit?: number | string) {
+    this.limit = parseInt(limit as string, 10) || 10;
+    if (this.limit < 1) this.limit = 10;
 
-    this.page = parseInt(page as string, 10) || 1;
-    if (this.page < 1) this.page = 1;
-
-    this.offset = (this.page - 1) * this.limit;
+    this.cursor = cursor || null;
   }
 
-  getMetadata(totalRecords: number) {
-    const totalPages =
-      totalRecords === 0 ? 0 : Math.ceil(totalRecords / this.limit);
+  getMetadata(data: any[], hasNextPage: boolean) {
+    const lastItem = data.length > 0 ? data[data.length - 1] : null;
+
     return {
-      totalRecords,
-      firstPage: 1,
-      lastPage: totalPages,
-      page: this.page,
+      nextCursor: hasNextPage && lastItem ? lastItem.id.toString() : null,
+      hasNextPage,
       limit: this.limit,
     };
   }

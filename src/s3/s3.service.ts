@@ -8,6 +8,7 @@ import { randomUUID } from 'crypto';
 import { PresignUploadDto } from './dto/presign.dto';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { UserService } from 'src/user/user.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 const ALLOWED_FILE_TYPES = [
   'image/jpeg',
@@ -23,7 +24,10 @@ export class S3Service {
   private readonly bucket: string;
   private readonly publicBaseUrl: string;
 
-  constructor(private readonly userService: UserService) {
+  constructor(
+    private readonly userService: UserService,
+    private readonly eventEmitter: EventEmitter2,
+  ) {
     this.bucket = process.env.AWS_S3_BUCKET || '';
     this.publicBaseUrl =
       process.env.CDN_BASE_URL || process.env.AWS_S3_PUBLIC_BASE_URL || '';
@@ -68,7 +72,6 @@ export class S3Service {
     });
 
     const uploadUrl = await getSignedUrl(this.s3Client, cmd, { expiresIn });
-    await this.userService.updateAvatar(userId, key);
     return {
       key,
       uploadUrl,
@@ -76,7 +79,14 @@ export class S3Service {
       publicUrl: this.buildPublicUrl(key),
     };
   }
-
+  requestConfirm(userId: number, key: string) {
+    this.eventEmitter.emit('avatar.uploaded', { userId, key });
+    return {
+      message: 'Đang xác thực file...',
+      publicUrl: this.buildPublicUrl(key),
+      key: key,
+    };
+  }
   async confirm(key: string) {
     if (!key.startsWith('users/')) {
       throw new BadRequestException('Invalid key');

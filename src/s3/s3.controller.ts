@@ -15,7 +15,9 @@ export class S3Controller {
   }
 
   @Post('confirm')
-  async confirm(@Body() dto: ConfirmUploadDto) {
-    return this.uploadsService.confirm(dto.key);
+  confirm(@Body() dto: ConfirmUploadDto, @Req() req: any) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    const userId = req.user?.id ?? 1;
+    return this.uploadsService.requestConfirm(userId, dto.key);
   }
 }
