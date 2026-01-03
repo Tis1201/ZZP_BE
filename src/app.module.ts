@@ -15,6 +15,10 @@ import { FileModule } from './queues/file/file.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { CleanupService } from './tasks/cleanup.service';
 import { RedisModule } from './redis/redis.module';
+import { SqsModule } from './sqs/sqs.module';
+import { ProfileModule } from './profile/profile.module';
+import { AuthGuard } from './common/guard/auth.guard';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -40,7 +44,6 @@ import { RedisModule } from './redis/redis.module';
         username: config.get<string>('DB_USERNAME'),
         password: config.get<string>('DB_PASSWORD'),
         database: config.get<string>('DB_DATABASE'),
-        autoLoadEntities: true,
         synchronize: true,
         entities: ENTITIES,
       }),
@@ -51,8 +54,17 @@ import { RedisModule } from './redis/redis.module';
     S3Module,
     FileModule,
     RedisModule,
+    SqsModule,
+    ProfileModule,
   ],
   controllers: [AppController],
-  providers: [AppService, CleanupService],
+  providers: [
+    AppService,
+    CleanupService,
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
+  ],
 })
 export class AppModule {}

@@ -18,6 +18,17 @@ async function bootstrap() {
     .setDescription('Tài liệu hướng dẫn sử dụng API')
     .setVersion('1.0')
     .addTag('users')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'JWT',
+        description: 'Nhập token của bạn vào đây',
+        in: 'header',
+      },
+      'access-token',
+    )
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

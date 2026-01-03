@@ -3,12 +3,13 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/entity/user.entity';
-import { LessThan, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { randomBytes, scryptSync } from 'crypto';
 import { RedisService } from 'src/redis/redis.service';
 import { PaginatedUserResponseDto } from 'src/dto/cursor-response.dto';
 import { plainToInstance } from 'class-transformer';
+import { SqsService } from 'src/sqs/sqs.service';
 
 @Injectable()
 export class UserService {
@@ -16,6 +17,7 @@ export class UserService {
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
     private readonly redisService: RedisService,
+    private readonly sqsqService: SqsService,
   ) {}
   hashPassword(password: string) {
     const salt = randomBytes(16).toString('hex');
@@ -27,6 +29,7 @@ export class UserService {
     const hashed = this.hashPassword(dto.password);
     const user = await this.findOne(dto.username);
     if (user) throw new BadRequestException('Existing User');
+    await this.sqsqService.sendMessage({ event: 'CREATE_USER', data: dto });
     return this.userRepo.save({ ...dto, password: hashed });
   }
 
@@ -49,13 +52,21 @@ export class UserService {
   async findAll(cursor: string | number | undefined, limit: number) {
     const queryLimit = Number(limit) || 10;
 
-    const cursorNum = cursor ? Number(cursor) : undefined;
+    const queryBuilder = this.userRepo
+      .createQueryBuilder('user')
+      .leftJoinAndSelect(
+        'user.profile',
+        'profile',
+        'profile.deletedAt IS NULL',
+      );
 
-    const items = await this.userRepo.find({
-      where: cursorNum ? { id: LessThan(cursorNum) } : {},
-      order: { id: 'ASC' } as any,
-      take: queryLimit + 1,
-    });
+    if (cursor) {
+      const cursorNumber = Number(cursor);
+      queryBuilder.andWhere('user.id > :cursor', { cursor: cursorNumber });
+    }
+    queryBuilder.orderBy('user.id', 'ASC').take(limit + 1);
+
+    const items = await queryBuilder.getMany();
 
     const hasNextPage = items.length > queryLimit;
     const data = hasNextPage ? items.slice(0, queryLimit) : items;

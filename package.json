@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.958.0",
+    "@aws-sdk/client-sqs": "^3.960.0",
     "@aws-sdk/s3-request-presigner": "^3.958.0",
     "@bull-board/api": "^6.16.2",
     "@bull-board/express": "^6.16.2",
@@ -36,6 +37,7 @@
     "@nestjs/schedule": "^6.1.0",
     "@nestjs/swagger": "^11.2.3",
     "@nestjs/typeorm": "^11.0.0",
+    "@ssut/nestjs-sqs": "^3.0.1",
     "bullmq": "^5.66.4",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.3",

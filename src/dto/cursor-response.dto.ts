@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
+import { VoUser } from 'src/user/dto/vo-user';
 
-// DTO cho Metadata
 export class CursorMetadataDto {
   @ApiProperty({
     example: '3',
@@ -34,8 +34,8 @@ export class PaginatedUserResponseDto {
     description: 'Danh sách người dùng',
   })
   @Expose()
-  @Type(() => CreateUserDto)
-  data: CreateUserDto[];
+  @Type(() => VoUser)
+  data: VoUser[];
 
   @ApiProperty({
     example: CursorMetadataDto,

@@ -12,15 +12,16 @@ POST http://localhost:3000/auth/sign-up
 Content-Type: application/json
 
 {
-    "username" : "vu.luu3@zzp.vn",
+    "username" : "vu.luu21@zzp.vn",
     "password" : "123456"
 }
 
 ### GET USER BY ID
 GET http://localhost:3000/user/2
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjMsImlhdCI6MTc2NzE1NzEyNiwiZXhwIjoxNzY3MTU3MzA2fQ.f-fIZK3w9FTSKLr3Z1mr4VPDnIwED_zZPt8vG5vAGUM
 
-###GET ALL USER
-GET http://localhost:3000/user?cursor=2&limit=2
+### GET LIST USER
+GET http://localhost:3000/user/list?cursor=0&limit=10
 
 
 

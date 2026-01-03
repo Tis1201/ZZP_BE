@@ -14,8 +14,8 @@ export class S3Controller {
   @ApiResponse({ status: 200, description: 'Lấy URL presign thành công' })
   async presignAvatar(@Req() req: any, @Body() dto: PresignUploadDto) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-    const userId = req.user?.id ?? 1;
-    return this.uploadsService.presignUpload(userId, dto);
+    const id = req.user.sub;
+    return this.uploadsService.presignUpload(id, dto);
   }
 
   @Post('confirm')
@@ -23,7 +23,7 @@ export class S3Controller {
   @ApiResponse({ status: 200, description: 'Xác nhận thành công' })
   confirm(@Body() dto: ConfirmUploadDto, @Req() req: any) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-    const userId = req.user?.id ?? 1;
-    return this.uploadsService.requestConfirm(userId, dto.key);
+    const id = req.user.sub;
+    return this.uploadsService.requestConfirm(id, dto.key);
   }
 }

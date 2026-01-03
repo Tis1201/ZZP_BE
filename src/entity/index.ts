@@ -1,2 +1,4 @@
 import { User } from './user.entity';
-export const ENTITIES = [User];
+import { Profile } from './profile.entity';
+
+export const ENTITIES = [User, Profile];

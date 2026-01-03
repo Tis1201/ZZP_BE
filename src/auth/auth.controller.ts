@@ -3,7 +3,13 @@ import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { UserService } from 'src/user/user.service';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import { Public } from 'custom-decorator';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -14,6 +20,7 @@ export class AuthController {
   ) {}
 
   @Post('login')
+  @Public()
   @HttpCode(200)
   @ApiOperation({ summary: 'Đăng nhập người dùng' })
   @ApiResponse({ status: 200, description: 'Đăng nhập thành công' })
@@ -22,6 +29,7 @@ export class AuthController {
   }
 
   @Post('sign-up')
+  @Public()
   @HttpCode(201)
   @ApiOperation({ summary: 'Đăng ký người dùng mới' })
   @ApiResponse({ status: 201, description: 'Đăng ký thành công' })
@@ -32,6 +40,7 @@ export class AuthController {
   @Post('refresh-token')
   @HttpCode(200)
   @ApiOperation({ summary: 'Làm mới token' })
+  @ApiBearerAuth('access-token')
   @ApiResponse({ status: 200, description: 'Làm mới token thành công' })
   refresh(@Body() refreshToken: string) {
     return this.authService.refresh(refreshToken);
